@@ -81,7 +81,7 @@ function renderTable() {
       <td class="col-user">${escapeHtml(p.user)}</td>
       <td class="col-address">${escapeHtml(p.address)}</td>
       <td>
-        <button class="btn-kill" onclick="handleKill(${p.pid}, '${escapeHtml(p.command)}', '${p.port}')">Kill</button>
+        <button class="btn-kill" onclick="handleKill(${p.pid}, '${escapeHtml(p.command)}', '${p.port}')" title="Kill process">💀</button>
       </td>
     </tr>`
     )
