@@ -25,6 +25,19 @@ function fetchProcesses() {
     }
   }
 
+  // Enrich with CPU/memory stats
+  const stats = getProcessStats(unique.map((p) => p.pid));
+  for (const p of unique) {
+    const s = stats.get(p.pid);
+    if (s) {
+      p.cpu = s.cpu;
+      p.memory = s.memory;
+    } else {
+      p.cpu = 0;
+      p.memory = 0;
+    }
+  }
+
   // Sort by port number, then PID
   unique.sort((a, b) => {
     const portA = parseInt(a.port) || 0;
@@ -36,12 +49,72 @@ function fetchProcesses() {
   return unique;
 }
 
+// ─── CPU / Memory stats ─────────────────────────────────────────────
+
+function getProcessStats(pids) {
+  const map = new Map();
+  if (pids.length === 0) return map;
+
+  if (platform === 'win32') {
+    return getProcessStatsWindows(pids);
+  }
+  return getProcessStatsUnix(pids);
+}
+
+function getProcessStatsUnix(pids) {
+  const map = new Map();
+  try {
+    const pidList = [...new Set(pids)].join(',');
+    const out = execSync(`ps -o pid=,pcpu=,rss= -p ${pidList} 2>/dev/null`, {
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    for (const line of out.trim().split('\n')) {
+      const parts = line.trim().split(/\s+/);
+      if (parts.length >= 3) {
+        const pid = parseInt(parts[0]);
+        const cpu = parseFloat(parts[1]) || 0;
+        const rssKb = parseInt(parts[2]) || 0;
+        const memoryMb = Math.round((rssKb / 1024) * 10) / 10;
+        map.set(pid, { cpu: Math.round(cpu * 10) / 10, memory: memoryMb });
+      }
+    }
+  } catch {
+    // ps failed
+  }
+  return map;
+}
+
+function getProcessStatsWindows(pids) {
+  const map = new Map();
+  try {
+    // Get memory from tasklist
+    const out = execSync('tasklist /FO CSV /NH', {
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    for (const line of out.trim().split('\n')) {
+      // "name.exe","PID","Session","#","Mem Usage"
+      const match = line.match(/^"[^"]+","(\d+)","[^"]*","[^"]*","([\d,]+)\s*K"/);
+      if (match) {
+        const pid = parseInt(match[1]);
+        if (pids.includes(pid)) {
+          const memKb = parseInt(match[2].replace(/,/g, '')) || 0;
+          map.set(pid, { cpu: 0, memory: Math.round((memKb / 1024) * 10) / 10 });
+        }
+      }
+    }
+  } catch {
+    // tasklist failed
+  }
+  return map;
+}
+
 // ─── macOS / Linux: lsof ────────────────────────────────────────────
 
 function fetchUnix() {
   const processes = [];
 
-  // TCP listening sockets
   try {
     const tcpOut = execSync('lsof -iTCP -sTCP:LISTEN -nP 2>/dev/null', {
       encoding: 'utf-8',
@@ -52,7 +125,6 @@ function fetchUnix() {
     // lsof may fail if no TCP listeners
   }
 
-  // UDP bound sockets
   try {
     const udpOut = execSync('lsof -iUDP -nP 2>/dev/null', {
       encoding: 'utf-8',
@@ -72,7 +144,6 @@ function parseLsofOutput(output) {
 
   for (let i = 1; i < lines.length; i++) {
     const fields = lines[i].trim().split(/\s+/);
-    // COMMAND(0) PID(1) USER(2) FD(3) TYPE(4) DEVICE(5) SIZE/OFF(6) NODE(7) NAME(8) [state(9)]
     if (fields.length < 9) continue;
 
     const pid = parseInt(fields[1]);
@@ -106,8 +177,6 @@ function parseLsofOutput(output) {
 
 function fetchWindows() {
   const processes = [];
-
-  // Build PID -> process name map from tasklist
   const pidNameMap = buildPidNameMap();
 
   try {
@@ -131,7 +200,6 @@ function buildPidNameMap() {
       timeout: 5000,
     });
     for (const line of out.trim().split('\n')) {
-      // Format: "name.exe","PID","Session Name","Session#","Mem Usage"
       const match = line.match(/^"([^"]+)","(\d+)"/);
       if (match) {
         map.set(parseInt(match[2]), match[1]);
@@ -150,8 +218,6 @@ function parseNetstatOutput(output, pidNameMap) {
   for (const line of lines) {
     const trimmed = line.trim();
 
-    // Match lines like:   TCP    0.0.0.0:8080    0.0.0.0:0    LISTENING    1234
-    //                     UDP    0.0.0.0:5353    *:*                       1234
     const match = trimmed.match(
       /^\s*(TCP|UDP)\s+(\S+)\s+\S+\s+(?:LISTENING\s+)?(\d+)\s*$/
     );
@@ -161,15 +227,11 @@ function parseNetstatOutput(output, pidNameMap) {
     const localAddr = match[2];
     const pid = parseInt(match[3]);
 
-    // Only LISTENING for TCP (UDP has no LISTENING state, it's always included)
     if (protocol === 'TCP' && !trimmed.includes('LISTENING')) continue;
-
     if (isNaN(pid) || pid === 0) continue;
 
-    // Parse address:port — handle IPv6 like [::]:8080
     let address, port;
     if (localAddr.startsWith('[')) {
-      // IPv6: [::]:port or [::1]:port
       const bracketEnd = localAddr.indexOf(']:');
       if (bracketEnd === -1) continue;
       address = localAddr.substring(1, bracketEnd);
@@ -209,7 +271,6 @@ function killProcessUnix(pid) {
       setTimeout(() => {
         try {
           process.kill(pid, 0);
-          // Still alive, escalate
           try {
             process.kill(pid, 'SIGKILL');
             resolve({ success: true, pid });
@@ -228,7 +289,6 @@ function killProcessUnix(pid) {
 
 function killProcessWindows(pid) {
   try {
-    // /F = force, /PID = by process ID
     execSync(`taskkill /F /PID ${pid}`, { timeout: 5000 });
     return Promise.resolve({ success: true, pid });
   } catch (e) {

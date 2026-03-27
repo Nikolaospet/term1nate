@@ -5,11 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>term1nate</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
@@ -28,54 +24,54 @@
       -webkit-app-region: no-drag;
     }
 
-    /* Title bar area - draggable */
+    /* ── Titlebar ── */
     .titlebar {
       -webkit-app-region: drag;
-      padding: 16px 20px 8px 80px;
+      padding: 14px 20px 6px 80px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
+    .titlebar h1 { font-size: 20px; font-weight: 700; color: #ff6b6b; letter-spacing: -0.5px; }
+    .titlebar-right { display: flex; align-items: center; gap: 12px; -webkit-app-region: no-drag; }
+    .process-count { font-size: 13px; color: #6a6a8a; }
+    .process-count strong { color: #ff6b6b; font-weight: 600; }
 
-    .titlebar h1 {
-      font-size: 20px;
-      font-weight: 700;
-      color: #ff6b6b;
-      letter-spacing: -0.5px;
-    }
-
-    .titlebar h1 span {
-      color: #4a4a6a;
-    }
-
-    .titlebar-right {
+    /* ── Tabs ── */
+    .tabs {
       display: flex;
-      align-items: center;
-      gap: 12px;
-      -webkit-app-region: no-drag;
+      gap: 0;
+      padding: 0 20px;
+      border-bottom: 1px solid #2a2a4a;
     }
-
-    .process-count {
-      font-size: 13px;
+    .tab {
+      padding: 8px 18px;
+      font-size: 12px;
+      font-weight: 500;
       color: #6a6a8a;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
     }
+    .tab:hover { color: #aaa; }
+    .tab.active { color: #ff6b6b; border-bottom-color: #ff6b6b; }
 
-    .process-count strong {
-      color: #ff6b6b;
-      font-weight: 600;
-    }
-
-    /* Toolbar */
+    /* ── Toolbar ── */
     .toolbar {
-      padding: 8px 20px 12px;
+      padding: 8px 20px 10px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      flex-wrap: wrap;
     }
-
     .search-box {
       flex: 1;
-      padding: 8px 14px;
+      min-width: 200px;
+      padding: 7px 12px;
       border-radius: 8px;
       border: 1px solid #2a2a4a;
       background: #16162b;
@@ -84,90 +80,60 @@
       outline: none;
       transition: border-color 0.2s;
     }
+    .search-box:focus { border-color: #ff6b6b; }
+    .search-box::placeholder { color: #4a4a6a; }
 
-    .search-box:focus {
-      border-color: #ff6b6b;
+    .port-range {
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
-
-    .search-box::placeholder {
-      color: #4a4a6a;
+    .port-input {
+      width: 70px;
+      padding: 7px 8px;
+      border-radius: 8px;
+      border: 1px solid #2a2a4a;
+      background: #16162b;
+      color: #e0e0e0;
+      font-size: 12px;
+      outline: none;
+      text-align: center;
     }
+    .port-input:focus { border-color: #ff6b6b; }
+    .port-range-sep { color: #4a4a6a; font-size: 12px; }
 
     .btn {
-      padding: 8px 16px;
+      padding: 7px 14px;
       border-radius: 8px;
       border: none;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.15s ease;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
+      white-space: nowrap;
     }
+    .btn-kill-all { background: rgba(255,107,107,0.15); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.3); }
+    .btn-kill-all:hover { background: rgba(255,107,107,0.25); }
+    .btn-refresh { background: rgba(100,200,255,0.1); color: #64c8ff; border: 1px solid rgba(100,200,255,0.2); }
+    .btn-refresh:hover { background: rgba(100,200,255,0.2); }
+    .btn-refresh.spinning svg { animation: spin 0.6s linear; }
+    .btn-export { background: rgba(80,250,123,0.1); color: #50fa7b; border: 1px solid rgba(80,250,123,0.2); }
+    .btn-export:hover { background: rgba(80,250,123,0.2); }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    .btn-kill-all {
-      background: rgba(255, 107, 107, 0.15);
-      color: #ff6b6b;
-      border: 1px solid rgba(255, 107, 107, 0.3);
-    }
+    /* ── Table ── */
+    .table-container { flex: 1; overflow-y: auto; padding: 0 20px; }
+    .table-container::-webkit-scrollbar { width: 6px; }
+    .table-container::-webkit-scrollbar-track { background: transparent; }
+    .table-container::-webkit-scrollbar-thumb { background: #2a2a4a; border-radius: 3px; }
 
-    .btn-kill-all:hover {
-      background: rgba(255, 107, 107, 0.25);
-    }
-
-    .btn-refresh {
-      background: rgba(100, 200, 255, 0.1);
-      color: #64c8ff;
-      border: 1px solid rgba(100, 200, 255, 0.2);
-    }
-
-    .btn-refresh:hover {
-      background: rgba(100, 200, 255, 0.2);
-    }
-
-    .btn-refresh.spinning svg {
-      animation: spin 0.6s linear;
-    }
-
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    /* Table */
-    .table-container {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0 20px;
-    }
-
-    .table-container::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .table-container::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .table-container::-webkit-scrollbar-thumb {
-      background: #2a2a4a;
-      border-radius: 3px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    thead {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
+    table { width: 100%; border-collapse: collapse; }
+    thead { position: sticky; top: 0; z-index: 10; }
     thead th {
-      padding: 10px 12px;
+      padding: 9px 10px;
       text-align: left;
       font-size: 11px;
       font-weight: 600;
@@ -176,93 +142,151 @@
       color: #6a6a8a;
       background: #1a1a2e;
       border-bottom: 1px solid #2a2a4a;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.15s;
+      white-space: nowrap;
     }
+    thead th:hover { color: #aaa; }
+    thead th.sorted { color: #ff6b6b; }
+    thead th .sort-arrow { font-size: 10px; margin-left: 3px; }
 
-    tbody tr {
-      transition: background 0.1s;
-      cursor: default;
-    }
-
-    tbody tr:hover {
-      background: rgba(255, 255, 255, 0.03);
-    }
-
+    tbody tr { transition: background 0.1s; cursor: default; }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+    tbody tr.pinned { background: rgba(255,200,0,0.05); }
     tbody td {
-      padding: 10px 12px;
+      padding: 8px 10px;
       font-size: 13px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
       white-space: nowrap;
     }
 
-    .col-pid {
-      font-family: 'SF Mono', 'Menlo', monospace;
-      font-size: 12px;
-      color: #8a8aaa;
-    }
+    .col-pid { font-family: 'SF Mono','Menlo',monospace; font-size: 12px; color: #8a8aaa; }
+    .col-command { font-weight: 500; color: #fff; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+    .col-port { font-family: 'SF Mono','Menlo',monospace; font-weight: 600; color: #64c8ff; }
+    .col-protocol { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
+    .col-user { color: #8a8aaa; }
+    .col-address { font-family: 'SF Mono','Menlo',monospace; font-size: 12px; color: #6a6a8a; }
+    .col-cpu { font-family: 'SF Mono','Menlo',monospace; font-size: 12px; }
+    .col-mem { font-family: 'SF Mono','Menlo',monospace; font-size: 12px; color: #8a8aaa; }
 
-    .col-command {
-      font-weight: 500;
-      color: #ffffff;
-      max-width: 180px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    .cpu-high { color: #ff6b6b; }
+    .cpu-med { color: #ffc864; }
+    .cpu-low { color: #50fa7b; }
 
-    .col-port {
-      font-family: 'SF Mono', 'Menlo', monospace;
-      font-weight: 600;
-      color: #64c8ff;
-    }
+    .badge-tcp { background: rgba(100,200,255,0.15); color: #64c8ff; padding: 2px 7px; border-radius: 4px; }
+    .badge-udp { background: rgba(255,200,100,0.15); color: #ffc864; padding: 2px 7px; border-radius: 4px; }
 
-    .col-protocol {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-    }
-
-    .badge-tcp {
-      background: rgba(100, 200, 255, 0.15);
-      color: #64c8ff;
-      padding: 2px 8px;
-      border-radius: 4px;
-    }
-
-    .badge-udp {
-      background: rgba(255, 200, 100, 0.15);
-      color: #ffc864;
-      padding: 2px 8px;
-      border-radius: 4px;
-    }
-
-    .col-user {
-      color: #8a8aaa;
-    }
-
-    .col-address {
-      font-family: 'SF Mono', 'Menlo', monospace;
-      font-size: 12px;
-      color: #6a6a8a;
-    }
+    /* Color coding by type */
+    .type-db { border-left: 3px solid #ff79c6; }
+    .type-web { border-left: 3px solid #64c8ff; }
+    .type-system { border-left: 3px solid #6a6a8a; }
+    .type-dev { border-left: 3px solid #50fa7b; }
+    .type-other { border-left: 3px solid #2a2a4a; }
 
     .btn-kill {
       padding: 4px 10px;
       border-radius: 6px;
-      border: 1px solid rgba(255, 107, 107, 0.3);
-      background: rgba(255, 107, 107, 0.1);
+      border: 1px solid rgba(255,107,107,0.3);
+      background: rgba(255,107,107,0.1);
       font-size: 18px;
       cursor: pointer;
       transition: all 0.15s;
       line-height: 1;
     }
+    .btn-kill:hover { background: #ff6b6b; transform: scale(1.2); }
 
-    .btn-kill:hover {
-      background: #ff6b6b;
-      transform: scale(1.2);
+    .btn-fav {
+      padding: 2px 6px;
+      background: none;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      opacity: 0.3;
+      transition: all 0.15s;
     }
+    .btn-fav:hover { opacity: 0.7; }
+    .btn-fav.is-fav { opacity: 1; }
 
-    /* Status bar */
+    .actions-cell { display: flex; align-items: center; gap: 4px; }
+
+    /* ── Panel (History / Auto-kill) ── */
+    .panel { flex: 1; overflow-y: auto; padding: 16px 20px; display: none; }
+    .panel.active { display: block; }
+
+    .panel h2 { font-size: 15px; color: #ff6b6b; margin-bottom: 12px; font-weight: 600; }
+    .panel-empty { color: #4a4a6a; font-size: 13px; text-align: center; padding: 40px 0; }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 13px;
+    }
+    .history-item .hi-command { color: #fff; font-weight: 500; }
+    .history-item .hi-port { color: #64c8ff; font-family: 'SF Mono','Menlo',monospace; font-size: 12px; }
+    .history-item .hi-time { color: #4a4a6a; font-size: 11px; }
+    .history-item .hi-auto { color: #ffc864; font-size: 10px; font-weight: 600; margin-left: 6px; }
+
+    .rule-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .rule-input {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #2a2a4a;
+      background: #16162b;
+      color: #e0e0e0;
+      font-size: 12px;
+      outline: none;
+      width: 120px;
+    }
+    .rule-input:focus { border-color: #ff6b6b; }
+    .rule-toggle {
+      width: 36px;
+      height: 20px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+      position: relative;
+    }
+    .rule-toggle.on { background: #50fa7b; }
+    .rule-toggle.off { background: #3a3a5a; }
+    .rule-toggle::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: white;
+      top: 2px;
+      left: 2px;
+      transition: left 0.2s;
+    }
+    .rule-toggle.on::after { left: 18px; }
+    .btn-small {
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: none;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn-add { background: rgba(100,200,255,0.15); color: #64c8ff; }
+    .btn-add:hover { background: rgba(100,200,255,0.25); }
+    .btn-danger { background: rgba(255,107,107,0.15); color: #ff6b6b; }
+    .btn-danger:hover { background: rgba(255,107,107,0.25); }
+
+    /* ── Statusbar ── */
     .statusbar {
-      padding: 10px 20px;
+      padding: 8px 20px;
       font-size: 12px;
       color: #4a4a6a;
       border-top: 1px solid #2a2a4a;
@@ -270,46 +294,13 @@
       justify-content: space-between;
     }
 
-    .status-msg {
-      transition: opacity 0.3s;
-    }
-
-    .status-msg.success {
-      color: #50fa7b;
-    }
-
-    .status-msg.error {
-      color: #ff6b6b;
-    }
-
-    /* Empty state */
-    .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: #4a4a6a;
-      gap: 8px;
-    }
-
-    .empty-state svg {
-      opacity: 0.3;
-      margin-bottom: 8px;
-    }
-
-    /* Confirm dialog */
+    /* ── Modals ── */
     .confirm-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      backdrop-filter: blur(4px);
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100; backdrop-filter: blur(4px);
     }
-
     .confirm-dialog {
       background: #22223a;
       border: 1px solid #3a3a5a;
@@ -318,83 +309,64 @@
       max-width: 380px;
       text-align: center;
     }
-
-    .confirm-dialog h3 {
-      font-size: 16px;
-      margin-bottom: 8px;
-      color: #ff6b6b;
-    }
-
-    .confirm-dialog p {
-      font-size: 13px;
-      color: #8a8aaa;
-      margin-bottom: 20px;
-    }
-
-    .confirm-buttons {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-    }
-
+    .confirm-dialog h3 { font-size: 16px; margin-bottom: 8px; color: #ff6b6b; }
+    .confirm-dialog p { font-size: 13px; color: #8a8aaa; margin-bottom: 20px; }
+    .confirm-buttons { display: flex; gap: 10px; justify-content: center; }
     .btn-confirm {
-      padding: 8px 24px;
+      padding: 8px 24px; border-radius: 8px; border: none;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .btn-confirm-yes { background: #ff6b6b; color: white; }
+    .btn-confirm-yes:hover { background: #ff5252; }
+    .btn-confirm-no { background: #2a2a4a; color: #8a8aaa; }
+    .btn-confirm-no:hover { background: #3a3a5a; }
+
+    /* ── Export modal ── */
+    .export-textarea {
+      width: 100%;
+      height: 200px;
+      background: #16162b;
+      border: 1px solid #2a2a4a;
       border-radius: 8px;
-      border: none;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
+      color: #e0e0e0;
+      font-family: 'SF Mono','Menlo',monospace;
+      font-size: 11px;
+      padding: 10px;
+      resize: none;
+      margin-bottom: 12px;
+      outline: none;
     }
 
-    .btn-confirm-yes {
-      background: #ff6b6b;
-      color: white;
-    }
-
-    .btn-confirm-yes:hover {
-      background: #ff5252;
-    }
-
-    .btn-confirm-no {
-      background: #2a2a4a;
-      color: #8a8aaa;
-    }
-
-    .btn-confirm-no:hover {
-      background: #3a3a5a;
-    }
-
-    /* Toast notification */
+    /* ── Toast ── */
     .toast {
-      position: fixed;
-      bottom: 50px;
-      left: 50%;
+      position: fixed; bottom: 50px; left: 50%;
       transform: translateX(-50%) translateY(20px);
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 500;
-      opacity: 0;
-      transition: all 0.3s ease;
-      z-index: 200;
-      pointer-events: none;
+      padding: 10px 20px; border-radius: 8px;
+      font-size: 13px; font-weight: 500;
+      opacity: 0; transition: all 0.3s ease;
+      z-index: 200; pointer-events: none;
     }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.success { background: rgba(80,250,123,0.15); color: #50fa7b; border: 1px solid rgba(80,250,123,0.3); }
+    .toast.error { background: rgba(255,107,107,0.15); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.3); }
 
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
+    /* ── Empty state ── */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; height: 200px; color: #4a4a6a; gap: 8px;
     }
+    .empty-state svg { opacity: 0.3; margin-bottom: 8px; }
 
-    .toast.success {
-      background: rgba(80, 250, 123, 0.15);
-      color: #50fa7b;
-      border: 1px solid rgba(80, 250, 123, 0.3);
-    }
-
-    .toast.error {
-      background: rgba(255, 107, 107, 0.15);
-      color: #ff6b6b;
-      border: 1px solid rgba(255, 107, 107, 0.3);
+    /* ── Group header ── */
+    .group-header td {
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #6a6a8a;
+      background: rgba(255,255,255,0.02);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #2a2a4a;
     }
   </style>
 </head>
@@ -407,28 +379,43 @@
       </div>
     </div>
 
-    <div class="toolbar">
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="processes">Processes</button>
+      <button class="tab" data-tab="history">History</button>
+      <button class="tab" data-tab="rules">Auto-Kill Rules</button>
+    </div>
+
+    <!-- ── Processes Tab ── -->
+    <div class="toolbar" id="processToolbar">
       <input type="text" class="search-box" id="search" placeholder="Search processes, ports, users...">
+      <div class="port-range">
+        <input type="text" class="port-input" id="portMin" placeholder="Min">
+        <span class="port-range-sep">-</span>
+        <input type="text" class="port-input" id="portMax" placeholder="Max">
+      </div>
       <button class="btn btn-refresh" id="refreshBtn" title="Refresh">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
         </svg>
       </button>
-      <button class="btn btn-kill-all" id="killAllBtn">
-        ☢️ Kill All
-      </button>
+      <button class="btn btn-export" id="exportBtn" title="Export">Export</button>
+      <button class="btn btn-kill-all" id="killAllBtn">☢️ Kill All</button>
     </div>
 
-    <div class="table-container" id="tableContainer">
+    <div class="table-container panel active" id="processPanel">
       <table>
         <thead>
           <tr>
-            <th>PID</th>
-            <th>Command</th>
-            <th>Port</th>
-            <th>Protocol</th>
-            <th>User</th>
-            <th>Address</th>
+            <th data-sort="fav" style="width:30px"></th>
+            <th data-sort="pid">PID <span class="sort-arrow"></span></th>
+            <th data-sort="command">Command <span class="sort-arrow"></span></th>
+            <th data-sort="port">Port <span class="sort-arrow"></span></th>
+            <th data-sort="protocol">Proto <span class="sort-arrow"></span></th>
+            <th data-sort="user">User <span class="sort-arrow"></span></th>
+            <th data-sort="address">Address <span class="sort-arrow"></span></th>
+            <th data-sort="cpu">CPU <span class="sort-arrow"></span></th>
+            <th data-sort="memory">Mem <span class="sort-arrow"></span></th>
             <th></th>
           </tr>
         </thead>
@@ -436,13 +423,34 @@
       </table>
     </div>
 
+    <!-- ── History Tab ── -->
+    <div class="panel" id="historyPanel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+        <h2>Kill History</h2>
+        <button class="btn-small btn-danger" id="clearHistoryBtn">Clear All</button>
+      </div>
+      <div id="historyList"></div>
+    </div>
+
+    <!-- ── Auto-kill Rules Tab ── -->
+    <div class="panel" id="rulesPanel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+        <h2>Auto-Kill Rules</h2>
+        <button class="btn-small btn-add" id="addRuleBtn">+ Add Rule</button>
+      </div>
+      <p style="font-size:12px; color:#4a4a6a; margin-bottom:14px;">
+        Processes matching these rules will be automatically killed on each scan.
+      </p>
+      <div id="rulesList"></div>
+    </div>
+
     <div class="statusbar">
-      <span class="status-msg" id="statusMsg">Refreshing every 2s</span>
+      <span id="statusMsg">Refreshing every 2s</span>
       <span id="lastUpdate"></span>
     </div>
   </div>
 
-  <!-- Single kill confirm dialog -->
+  <!-- Single kill confirm -->
   <div class="confirm-overlay" id="killOneDialog" style="display:none">
     <div class="confirm-dialog">
       <h3>Kill Process?</h3>
@@ -458,14 +466,30 @@
     </div>
   </div>
 
-  <!-- Kill all confirm dialog -->
+  <!-- Kill all confirm -->
   <div class="confirm-overlay" id="confirmDialog" style="display:none">
     <div class="confirm-dialog">
-      <h3>Kill All Processes?</h3>
+      <h3>☢️ Kill All Processes?</h3>
       <p>This will terminate <strong id="confirmCount">0</strong> processes. This action cannot be undone.</p>
       <div class="confirm-buttons">
         <button class="btn-confirm btn-confirm-no" id="confirmNo">Cancel</button>
         <button class="btn-confirm btn-confirm-yes" id="confirmYes">Kill All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export modal -->
+  <div class="confirm-overlay" id="exportDialog" style="display:none">
+    <div class="confirm-dialog" style="max-width:500px; text-align:left;">
+      <h3 style="margin-bottom:14px;">Export Processes</h3>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <button class="btn-small btn-add export-format active" data-format="csv">CSV</button>
+        <button class="btn-small export-format" data-format="json" style="background:rgba(255,200,100,0.15); color:#ffc864;">JSON</button>
+      </div>
+      <textarea class="export-textarea" id="exportOutput" readonly></textarea>
+      <div class="confirm-buttons" style="justify-content:flex-end;">
+        <button class="btn-confirm btn-confirm-no" id="exportClose">Close</button>
+        <button class="btn-confirm btn-confirm-yes" id="exportCopy">Copy</button>
       </div>
     </div>
   </div>
