@@ -5,8 +5,10 @@
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --mac",
-    "build:dmg": "electron-builder --mac dmg"
+    "build": "electron-builder --mac --win --linux",
+    "build:mac": "electron-builder --mac dmg",
+    "build:win": "electron-builder --win nsis",
+    "build:linux": "electron-builder --linux AppImage deb"
   },
   "author": "Nikolaos Petridis",
   "license": "MIT",
@@ -21,6 +23,17 @@
     "mac": {
       "category": "public.app-category.utilities",
       "target": ["dmg"]
+    },
+    "win": {
+      "target": ["nsis"]
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Utility"
+    },
+    "nsis": {
+      "oneClick": true,
+      "allowToChangeInstallationDirectory": false
     },
     "files": [
       "src/**/*"

@@ -1,20 +1,21 @@
 # term1nate
 
-A lightweight macOS desktop app that monitors all processes listening on network ports in real time and lets you kill them with a single click.
+A lightweight cross-platform desktop app that monitors all processes listening on network ports in real time and lets you kill them with a single click.
 
-Built with Electron.
+Works on **macOS**, **Windows**, and **Linux**. Built with Electron.
 
 ---
 
 ## Features
 
 - **Real-time monitoring** — Automatically refreshes every 2 seconds to show all active processes bound to TCP and UDP ports
+- **Cross-platform** — Native process scanning on macOS (`lsof`), Windows (`netstat` + `tasklist`), and Linux (`lsof`)
 - **Search & filter** — Instantly filter by process name, port number, user, address, or protocol
 - **Kill individual processes** — Click the Kill button on any row. A confirmation dialog shows exactly which process you're about to terminate before proceeding
 - **Kill all processes** — Terminate every listed process at once (with confirmation)
-- **Graceful shutdown** — Sends SIGTERM first, waits 500ms, then escalates to SIGKILL if the process is still running
+- **Graceful shutdown** — On macOS/Linux sends SIGTERM first, waits 500ms, then escalates to SIGKILL. On Windows uses `taskkill /F`
 - **Self-protection** — The app will never kill its own process
-- **Dark UI** — Clean, minimal interface designed for macOS
+- **Dark UI** — Clean, minimal interface
 
 ## What it shows
 
@@ -35,7 +36,6 @@ Each row in the table displays:
 
 ### Prerequisites
 
-- **macOS** (uses `lsof` under the hood, which is built into macOS)
 - **Node.js** 18+ and **npm** — download from [nodejs.org](https://nodejs.org)
 
 ### Option 1: Run from source
@@ -52,7 +52,7 @@ npm install
 npm start
 ```
 
-### Option 2: Build a standalone .app / .dmg
+### Option 2: Build a standalone installer
 
 ```bash
 # Clone and install
@@ -60,16 +60,23 @@ git clone https://github.com/Nikolaospet/term1nate.git
 cd term1nate
 npm install
 
-# Build the macOS app
+# Build for all platforms
 npm run build
+
+# Or build for a specific platform
+npm run build:mac     # macOS → .dmg
+npm run build:win     # Windows → .exe installer
+npm run build:linux   # Linux → .AppImage + .deb
 ```
 
-After building, you'll find:
+After building, you'll find the installers in the `dist/` folder:
 
-- **`dist/mac-arm64/term1nate.app`** — Double-click to run directly
-- **`dist/term1nate-1.0.0-arm64.dmg`** — Installer for distribution (drag to Applications)
-
-> To build a DMG only: `npm run build:dmg`
+| Platform | Output                          | How to install                     |
+| -------- | ------------------------------- | ---------------------------------- |
+| macOS    | `term1nate-x.x.x.dmg`          | Open DMG, drag to Applications     |
+| Windows  | `term1nate Setup x.x.x.exe`    | Run the installer, one-click setup |
+| Linux    | `term1nate-x.x.x.AppImage`     | `chmod +x` and run directly        |
+| Linux    | `term1nate_x.x.x_amd64.deb`   | `sudo dpkg -i term1nate.deb`      |
 
 ---
 
@@ -82,15 +89,19 @@ After building, you'll find:
 npm start
 ```
 
-Or double-click `term1nate.app` if you built the standalone version.
+Or launch the installed app from your Applications / Start Menu.
 
 ### Running with elevated permissions
 
-By default, the app only shows processes owned by your user. To see **all** system processes (including those owned by root), run with `sudo`:
+By default, the app only shows processes owned by your user. To see **all** system processes:
 
+**macOS / Linux:**
 ```bash
 sudo npm start
 ```
+
+**Windows:**
+Right-click the app and select "Run as administrator".
 
 ### Interface walkthrough
 
@@ -121,10 +132,18 @@ sudo npm start
 
 ## How it works
 
-1. The app runs `lsof -iTCP -sTCP:LISTEN -nP` and `lsof -iUDP -nP` to discover all processes bound to network ports
-2. It parses the output, deduplicates entries (a process may appear twice for IPv4 and IPv6), and sorts by port number
-3. The process list is sent to the renderer via Electron's IPC bridge (`contextBridge`) — no `nodeIntegration`, keeping the app secure
-4. When you kill a process, it sends `SIGTERM` first for a graceful shutdown. If the process is still alive after 500ms, it escalates to `SIGKILL`
+The app uses platform-native tools to discover processes bound to network ports:
+
+| Platform      | Discovery method                                       |
+| ------------- | ------------------------------------------------------ |
+| macOS / Linux | `lsof -iTCP -sTCP:LISTEN -nP` and `lsof -iUDP -nP`   |
+| Windows       | `netstat -ano` combined with `tasklist` for names      |
+
+The process list is sent to the renderer via Electron's IPC bridge (`contextBridge`) — no `nodeIntegration`, keeping the app secure.
+
+When you kill a process:
+- **macOS / Linux** — Sends `SIGTERM` first for a graceful shutdown. If the process is still alive after 500ms, escalates to `SIGKILL`
+- **Windows** — Uses `taskkill /F /PID` for immediate termination
 
 ---
 
@@ -136,10 +155,10 @@ term1nate/
 ├── src/
 │   ├── main.js         # Electron main process — window creation, IPC handlers
 │   ├── preload.js      # Secure bridge between main and renderer
-│   ├── processes.js    # Process scanning (lsof) and kill logic
+│   ├── processes.js    # Cross-platform process scanning and kill logic
 │   ├── index.html      # UI layout and styles
 │   └── renderer.js     # Frontend logic — table rendering, search, modals
-└── dist/               # Built app (generated by npm run build)
+└── dist/               # Built installers (generated by npm run build)
 ```
 
 ---
@@ -147,14 +166,17 @@ term1nate/
 ## Troubleshooting
 
 **"No listening processes found"**
-- This usually means you're running without elevated permissions. Try `sudo npm start` to see all processes.
+- You may be running without elevated permissions. Try running as admin/root to see all processes.
 
 **"Failed to kill PID: Operation not permitted"**
-- The process is owned by root or another user. Run the app with `sudo` to kill system-owned processes.
+- The process is owned by another user. Run the app with elevated permissions (sudo / Run as administrator).
 
 **App won't start**
 - Make sure Node.js 18+ is installed: `node -v`
 - Run `npm install` to ensure all dependencies are present
+
+**Windows: netstat is slow**
+- The first scan may take a few seconds on Windows. Subsequent refreshes are faster.
 
 ---
 
