@@ -1,0 +1,29 @@
+{
+  "name": "term1nate",
+  "version": "1.0.0",
+  "description": "Monitor and kill processes running on ports",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --mac",
+    "build:dmg": "electron-builder --mac dmg"
+  },
+  "author": "term1nate",
+  "license": "MIT",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^41.1.0",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "com.term1nate.app",
+    "productName": "term1nate",
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": ["dmg"]
+    },
+    "files": [
+      "src/**/*"
+    ]
+  }
+}
