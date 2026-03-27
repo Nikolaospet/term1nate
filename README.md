@@ -1,0 +1,163 @@
+# term1nate
+
+A lightweight macOS desktop app that monitors all processes listening on network ports in real time and lets you kill them with a single click.
+
+Built with Electron.
+
+---
+
+## Features
+
+- **Real-time monitoring** — Automatically refreshes every 2 seconds to show all active processes bound to TCP and UDP ports
+- **Search & filter** — Instantly filter by process name, port number, user, address, or protocol
+- **Kill individual processes** — Click the Kill button on any row. A confirmation dialog shows exactly which process you're about to terminate before proceeding
+- **Kill all processes** — Terminate every listed process at once (with confirmation)
+- **Graceful shutdown** — Sends SIGTERM first, waits 500ms, then escalates to SIGKILL if the process is still running
+- **Self-protection** — The app will never kill its own process
+- **Dark UI** — Clean, minimal interface designed for macOS
+
+## What it shows
+
+Each row in the table displays:
+
+| Column   | Description                                      |
+| -------- | ------------------------------------------------ |
+| PID      | Process ID                                       |
+| Command  | Name of the running process                      |
+| Port     | The port number the process is listening on       |
+| Protocol | TCP or UDP                                       |
+| User     | The system user that owns the process             |
+| Address  | The network address the process is bound to       |
+
+---
+
+## Installation
+
+### Prerequisites
+
+- **macOS** (uses `lsof` under the hood, which is built into macOS)
+- **Node.js** 18+ and **npm** — download from [nodejs.org](https://nodejs.org)
+
+### Option 1: Run from source
+
+```bash
+# Clone the repository
+git clone https://github.com/Nikolaospet/term1nate.git
+cd term1nate
+
+# Install dependencies
+npm install
+
+# Launch the app
+npm start
+```
+
+### Option 2: Build a standalone .app / .dmg
+
+```bash
+# Clone and install
+git clone https://github.com/Nikolaospet/term1nate.git
+cd term1nate
+npm install
+
+# Build the macOS app
+npm run build
+```
+
+After building, you'll find:
+
+- **`dist/mac-arm64/term1nate.app`** — Double-click to run directly
+- **`dist/term1nate-1.0.0-arm64.dmg`** — Installer for distribution (drag to Applications)
+
+> To build a DMG only: `npm run build:dmg`
+
+---
+
+## Usage
+
+### Launching
+
+```bash
+# From the project directory
+npm start
+```
+
+Or double-click `term1nate.app` if you built the standalone version.
+
+### Running with elevated permissions
+
+By default, the app only shows processes owned by your user. To see **all** system processes (including those owned by root), run with `sudo`:
+
+```bash
+sudo npm start
+```
+
+### Interface walkthrough
+
+1. **Process table** — When the app opens, it immediately scans for all processes listening on TCP and UDP ports and displays them in a table sorted by port number
+
+2. **Search bar** — Type anything in the search box at the top to filter the list. It searches across all columns (PID, command name, port, protocol, user, address)
+
+3. **Killing a single process** — Click the red **Kill** button on any row. A confirmation dialog will appear showing:
+   - The process name and PID
+   - The port it's running on
+   - A prompt asking "Are you sure you want to proceed?"
+
+   Click **Kill** to confirm or **Cancel** to abort.
+
+4. **Killing all processes** — Click the **Kill All** button in the toolbar. A confirmation dialog shows how many processes will be terminated. Click **Kill All** to confirm.
+
+   > If you have a search filter active, "Kill All" only kills the filtered (visible) processes, not everything.
+
+5. **Manual refresh** — Click the refresh icon in the toolbar to force an immediate scan. The app also auto-refreshes every 2 seconds.
+
+### Keyboard shortcuts
+
+| Key    | Action                          |
+| ------ | ------------------------------- |
+| Escape | Close any open confirmation dialog |
+
+---
+
+## How it works
+
+1. The app runs `lsof -iTCP -sTCP:LISTEN -nP` and `lsof -iUDP -nP` to discover all processes bound to network ports
+2. It parses the output, deduplicates entries (a process may appear twice for IPv4 and IPv6), and sorts by port number
+3. The process list is sent to the renderer via Electron's IPC bridge (`contextBridge`) — no `nodeIntegration`, keeping the app secure
+4. When you kill a process, it sends `SIGTERM` first for a graceful shutdown. If the process is still alive after 500ms, it escalates to `SIGKILL`
+
+---
+
+## Project structure
+
+```
+term1nate/
+├── package.json        # App metadata, scripts, electron-builder config
+├── src/
+│   ├── main.js         # Electron main process — window creation, IPC handlers
+│   ├── preload.js      # Secure bridge between main and renderer
+│   ├── processes.js    # Process scanning (lsof) and kill logic
+│   ├── index.html      # UI layout and styles
+│   └── renderer.js     # Frontend logic — table rendering, search, modals
+└── dist/               # Built app (generated by npm run build)
+```
+
+---
+
+## Troubleshooting
+
+**"No listening processes found"**
+- This usually means you're running without elevated permissions. Try `sudo npm start` to see all processes.
+
+**"Failed to kill PID: Operation not permitted"**
+- The process is owned by root or another user. Run the app with `sudo` to kill system-owned processes.
+
+**App won't start**
+- Make sure Node.js 18+ is installed: `node -v`
+- Run `npm install` to ensure all dependencies are present
+
+---
+
+## License
+
+MIT
