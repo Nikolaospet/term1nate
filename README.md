@@ -158,6 +158,10 @@ term1nate/
 
 ---
 
+## Author
+
+Created by **Nikolaos Petridis**
+
 ## License
 
 MIT

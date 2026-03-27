@@ -8,7 +8,7 @@
     "build": "electron-builder --mac",
     "build:dmg": "electron-builder --mac dmg"
   },
-  "author": "term1nate",
+  "author": "Nikolaos Petridis",
   "license": "MIT",
   "type": "commonjs",
   "devDependencies": {
